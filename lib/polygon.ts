@@ -12,6 +12,31 @@ function dateStr(offsetMs = 0): string {
   return new Date(Date.now() - offsetMs).toISOString().slice(0, 10);
 }
 
+export async function getIntradayOHLC(
+  ticker: string,
+  multiplier: number,
+  unit: 'minute' | 'hour',
+  calendarDays: number,
+): Promise<OHLCBar[]> {
+  const to = dateStr();
+  const from = dateStr(calendarDays * 86_400_000);
+  const res = await polygonFetch(
+    `/v2/aggs/ticker/${ticker}/range/${multiplier}/${unit}/${from}/${to}?adjusted=true&sort=asc&limit=5000`,
+    60,
+  );
+  if (!res.ok) throw new Error(`Polygon intraday ${res.status}: ${ticker}`);
+  const json = await res.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (json.results ?? []).map((r: any): OHLCBar => ({
+    time: Math.floor(r.t / 1000),
+    open: r.o,
+    high: r.h,
+    low: r.l,
+    close: r.c,
+    volume: r.v ?? 0,
+  }));
+}
+
 export async function getOHLC(ticker: string, days = 365): Promise<OHLCBar[]> {
   const to = dateStr();
   const from = dateStr(days * 86_400_000);

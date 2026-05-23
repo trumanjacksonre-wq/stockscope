@@ -157,7 +157,7 @@ export default async function DashboardPage({ params }: Props) {
         </div>
 
         {/* Chart */}
-        <StockChart ohlc={ohlc} scenarios={scenarioData.scenarios} currentPrice={details.currentPrice} />
+        <StockChart ohlc={ohlc} scenarios={scenarioData.scenarios} currentPrice={details.currentPrice} ticker={upper} />
 
         {/* Two-column layout */}
         <div className="grid grid-cols-[1fr_340px] gap-6 items-start">

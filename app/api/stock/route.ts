@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
     }
 
     const details = await getTickerDetails(ticker, ohlcFull);
-    const ohlc = ohlcFull.slice(-90); // last 90 trading days for the chart
 
-    return Response.json({ ohlc, details });
+    // Return full year — chart slices client-side per selected range
+    return Response.json({ ohlc: ohlcFull, details });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return Response.json({ error: message }, { status: 500 });
