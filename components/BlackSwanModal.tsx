@@ -217,7 +217,7 @@ export default function BlackSwanModal({ ticker, currentPrice, onClose }: Props)
                 Running full tail-risk analysis across geopolitical, climate,<br />
                 supply-chain, contagion, regulatory, and technology vectors…
               </p>
-              <p className="text-zinc-600 text-xs">~20 seconds</p>
+              <p className="text-zinc-600 text-xs">~10–15 seconds</p>
             </div>
           )}
 

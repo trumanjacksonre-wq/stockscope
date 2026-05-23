@@ -75,7 +75,7 @@ CLIMATE/PHYSICAL: Are key facilities in flood zones, earthquake zones, wildfire 
 Generate the 5 most plausible-yet-overlooked events. Every field must be complete and specific. Return only raw JSON — no markdown fences, no preamble, no trailing text.`;
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-7',
+      model: 'claude-sonnet-4-6',
       max_tokens: 8000,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userPrompt }],
