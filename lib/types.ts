@@ -82,7 +82,15 @@ export interface BlackSwanEvent {
   description: string;
   chainOfCausation: string;
   triggerSignals: string[];
-  outOfBoxScore: number; // 0–100: how non-consensus this is
+  outOfBoxScore: number;
+  // Rich analyst brief fields
+  whyNowRisk: string;          // Current conditions making this MORE likely right now
+  affectedRevenue: string;     // How this specifically hits revenue/margins/guidance
+  pricePathology: string;      // How the selloff unfolds: gap-down, slow bleed, flash crash
+  historicalPrecedent: string; // Closest historical analog + what it did to the stock
+  contagionTo: string[];       // Other tickers/sectors caught in the blast radius
+  recoveryOutlook: string;     // Post-event recovery scenario + timeline
+  riskReducers: string[];      // What would lower this probability if it emerges
 }
 
 export interface BlackSwanResponse {
