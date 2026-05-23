@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const details = await getTickerDetails(ticker, ohlcFull);
 
     // News with company name for a tighter query
-    const rawHeadlines = await getNewsHeadlines(ticker, details.name);
+    const rawHeadlines = await getNewsHeadlines(ticker);
 
     // Generate scenarios + AI news labels in one Claude call
     const scenarioData = await generateScenarios(details, rawHeadlines, macro);
