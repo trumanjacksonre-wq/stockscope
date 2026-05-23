@@ -4,6 +4,7 @@ import SignalPanel from '@/components/SignalPanel';
 import NewsPanel from '@/components/NewsPanel';
 import StockChart from '@/components/StockChart';
 import SearchBar from '@/components/SearchBar';
+import { getBaseUrl } from '@/lib/base-url';
 import type { MacroData, NewsHeadline, OHLCBar, ScenarioResponse, TickerDetails } from '@/lib/types';
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 }
 
 async function fetchStock(ticker: string): Promise<{ ohlc: OHLCBar[]; details: TickerDetails }> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/stock?ticker=${ticker}`, {
+  const res = await fetch(`${getBaseUrl()}/api/stock?ticker=${ticker}`, {
     next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Failed to fetch stock data');
@@ -19,7 +20,7 @@ async function fetchStock(ticker: string): Promise<{ ohlc: OHLCBar[]; details: T
 }
 
 async function fetchScenarios(ticker: string): Promise<ScenarioResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/scenarios?ticker=${ticker}`, {
+  const res = await fetch(`${getBaseUrl()}/api/scenarios?ticker=${ticker}`, {
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error('Failed to fetch scenarios');
@@ -27,7 +28,7 @@ async function fetchScenarios(ticker: string): Promise<ScenarioResponse> {
 }
 
 async function fetchMacro(): Promise<{ macro: MacroData }> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/macro`, {
+  const res = await fetch(`${getBaseUrl()}/api/macro`, {
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error('Failed to fetch macro data');
@@ -35,7 +36,7 @@ async function fetchMacro(): Promise<{ macro: MacroData }> {
 }
 
 async function fetchNews(ticker: string, companyName?: string): Promise<{ headlines: NewsHeadline[] }> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+  const base = getBaseUrl();
   const params = new URLSearchParams({ ticker });
   if (companyName) params.set('name', companyName);
   const res = await fetch(`${base}/api/news?${params}`, { next: { revalidate: 900 } });
