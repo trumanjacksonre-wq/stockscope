@@ -62,6 +62,35 @@ export interface NewsHeadline {
   impact?: 'bullish' | 'bearish' | 'neutral';
 }
 
+export type BlackSwanCategory =
+  | 'geopolitical'
+  | 'climate'
+  | 'regulatory'
+  | 'contagion'
+  | 'supply-chain'
+  | 'currency'
+  | 'technology'
+  | 'health';
+
+export interface BlackSwanEvent {
+  id: string;
+  title: string;
+  category: BlackSwanCategory;
+  probability: number;
+  priceTarget: number;
+  dropPct: number;
+  description: string;
+  chainOfCausation: string;
+  triggerSignals: string[];
+  outOfBoxScore: number; // 0–100: how non-consensus this is
+}
+
+export interface BlackSwanResponse {
+  ticker: string;
+  currentPrice: number;
+  events: BlackSwanEvent[];
+}
+
 export interface TickerDetails {
   ticker: string;
   name: string;

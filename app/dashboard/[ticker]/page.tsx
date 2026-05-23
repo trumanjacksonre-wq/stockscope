@@ -166,7 +166,7 @@ export default async function DashboardPage({ params }: Props) {
           <div className="flex flex-col gap-4">
             <h2 className="text-zinc-400 text-xs font-semibold tracking-widest uppercase">Forward Scenarios</h2>
             {scenarioData.scenarios.map((s) => (
-              <ScenarioCard key={s.id} scenario={s} />
+              <ScenarioCard key={s.id} scenario={s} ticker={upper} currentPrice={details.currentPrice} />
             ))}
           </div>
 
