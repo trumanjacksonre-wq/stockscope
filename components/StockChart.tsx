@@ -80,7 +80,7 @@ export default function StockChart({ ohlc: dailyOhlc, scenarios, currentPrice, t
     import('lightweight-charts').then((lc) => {
       if (disposed || !containerRef.current) return;
 
-      const { createChart, CrosshairMode, CandlestickSeries, LineSeries, createSeriesMarkers } = lc;
+      const { createChart, CrosshairMode, LineStyle, CandlestickSeries, LineSeries, createSeriesMarkers } = lc;
 
       const isIntraday = range === '5D' || range === '2D';
 
@@ -135,59 +135,58 @@ export default function StockChart({ ohlc: dailyOhlc, scenarios, currentPrice, t
         text:     isIntraday ? 'Now' : 'Today',
       }]);
 
-      // ── Forward projection candlesticks (daily ranges only) ────────────────
+      // ── Forward projections: dashed target line + dotted range bounds ─────────
+      // Black swan is excluded — it has its own deep-dive modal.
       if (showProjections) {
         const PROJ_DAYS = 30;
         const day = 86400;
 
-        scenarios.forEach((s) => {
-          const hex = SCENARIO_COLORS[s.id] ?? '#71717a';
-
-          type ProjCandle = {
-            time: UTCTimestamp;
-            open: number; high: number; low: number; close: number;
-            color: string; borderColor: string; wickColor: string;
-          };
-
-          const candles: ProjCandle[] = [];
-          let prevClose = currentPrice;
-
-          for (let d = 1; d <= PROJ_DAYS; d++) {
+        function tradingDayPoints(startVal: number, endVal: number) {
+          const pts: { time: UTCTimestamp; value: number }[] = [];
+          for (let d = 0; d <= PROJ_DAYS; d++) {
             const ts  = todayTime + d * day;
             const dow = new Date(ts * 1000).getUTCDay();
-            if (dow === 0 || dow === 6) continue; // skip weekends
-
-            const prog     = d / PROJ_DAYS;
-            const closeVal = currentPrice + (s.priceTarget - currentPrice) * prog;
-            const highVal  = currentPrice + (s.priceHigh   - currentPrice) * prog;
-            const lowVal   = currentPrice + (s.priceLow    - currentPrice) * prog;
-
-            candles.push({
-              time:        t(ts),
-              open:        prevClose,
-              close:       closeVal,
-              high:        Math.max(prevClose, closeVal, highVal),
-              low:         Math.min(prevClose, closeVal, lowVal),
-              color:       `${hex}28`,   // semi-transparent body
-              borderColor: `${hex}bb`,
-              wickColor:   `${hex}bb`,
-            });
-
-            prevClose = closeVal;
+            if (dow === 0 || dow === 6) continue;
+            pts.push({ time: t(ts), value: startVal + (endVal - startVal) * (d / PROJ_DAYS) });
           }
+          return pts;
+        }
 
-          const projSeries = chart.addSeries(CandlestickSeries, {
-            upColor:          `${hex}28`,
-            downColor:        `${hex}28`,
-            borderUpColor:    `${hex}bb`,
-            borderDownColor:  `${hex}bb`,
-            wickUpColor:      `${hex}bb`,
-            wickDownColor:    `${hex}bb`,
-            priceLineVisible: false,
-            lastValueVisible: false,
+        scenarios
+          .filter((s) => s.id !== 'blackswan')
+          .forEach((s) => {
+            const hex = SCENARIO_COLORS[s.id] ?? '#71717a';
+
+            // Central target — solid dashed line, price label at right end
+            chart.addSeries(LineSeries, {
+              color:                  hex,
+              lineWidth:              2,
+              lineStyle:              LineStyle.Dashed,
+              priceLineVisible:       false,
+              lastValueVisible:       true,
+              crosshairMarkerVisible: false,
+            }).setData(tradingDayPoints(currentPrice, s.priceTarget));
+
+            // Upper bound — thin dotted, no label
+            chart.addSeries(LineSeries, {
+              color:                  `${hex}55`,
+              lineWidth:              1,
+              lineStyle:              LineStyle.Dotted,
+              priceLineVisible:       false,
+              lastValueVisible:       false,
+              crosshairMarkerVisible: false,
+            }).setData(tradingDayPoints(currentPrice, s.priceHigh));
+
+            // Lower bound — thin dotted, no label
+            chart.addSeries(LineSeries, {
+              color:                  `${hex}55`,
+              lineWidth:              1,
+              lineStyle:              LineStyle.Dotted,
+              priceLineVisible:       false,
+              lastValueVisible:       false,
+              crosshairMarkerVisible: false,
+            }).setData(tradingDayPoints(currentPrice, s.priceLow));
           });
-          projSeries.setData(candles);
-        });
       }
 
       chart.timeScale().fitContent();
@@ -211,18 +210,20 @@ export default function StockChart({ ohlc: dailyOhlc, scenarios, currentPrice, t
   }, [displayBars, scenarios, currentPrice, mode, range, showProjections]);
 
   // Legend for projection candles
+  const PROJ_LABELS: Partial<Record<string, string>> = { bull: 'Bull', base: 'Base', bear: 'Bear' };
+
   const projLegend = showProjections ? (
     <div className="flex items-center gap-4">
-      {scenarios.map((s) => {
+      {scenarios.filter((s) => s.id !== 'blackswan').map((s) => {
         const hex = SCENARIO_COLORS[s.id] ?? '#71717a';
-        const label = s.id === 'bull' ? 'Bull' : s.id === 'base' ? 'Base' : s.id === 'bear' ? 'Bear' : 'Black Swan';
         return (
           <div key={s.id} className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm border" style={{ background: `${hex}28`, borderColor: `${hex}bb` }} />
-            <span className="text-zinc-500 text-[10px]">{label}</span>
+            <span className="w-5 h-0.5" style={{ background: hex, display: 'inline-block' }} />
+            <span className="text-zinc-500 text-[10px]">{PROJ_LABELS[s.id]}</span>
           </div>
         );
       })}
+      <span className="text-zinc-600 text-[10px]">— 30-day projection</span>
     </div>
   ) : null;
 
